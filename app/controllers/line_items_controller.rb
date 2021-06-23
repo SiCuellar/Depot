@@ -1,89 +1,52 @@
-#---
-# Excerpted from "Agile Web Development with Rails 6",
-# published by The Pragmatic Bookshelf.
-# Copyrights apply to this code. It may not be used to create training material,
-# courses, books, articles, and the like. Contact us if you are in doubt.
-# We make no guarantees that this code is fit for any purpose.
-# Visit http://www.pragmaticprogrammer.com/titles/rails6 for more book information.
-#---
-class LineItemsController < ApplicationController
-  include CurrentCart
-  before_action :set_cart, only: [:create]
-  before_action :set_line_item, only: [:show, :edit, :update, :destroy]
 
-  # GET /line_items
-  # GET /line_items.json
-  def index
-    @line_items = LineItem.all
+require 'test_helper'
+
+class LineItemsControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    @line_item = line_items(:one)
   end
 
-  # GET /line_items/1
-  # GET /line_items/1.json
-  def show
+  test "should get index" do
+    get line_items_url
+    assert_response :success
   end
 
-  # GET /line_items/new
-  def new
-    @line_item = LineItem.new
+  test "should get new" do
+    get new_line_item_url
+    assert_response :success
   end
 
-  # GET /line_items/1/edit
-  def edit
-  end
-
-  # POST /line_items
-  # POST /line_items.json
-  def create
-    product = Product.find(params[:product_id])
-    @line_item = @cart.line_items.build(product: product)
-
-    respond_to do |format|
-      if @line_item.save
-        format.html { redirect_to @line_item.cart,
-          notice: 'Line item was successfully created.' }
-        format.json { render :show,
-          status: :created, location: @line_item }
-      else
-        format.html { render :new }
-        format.json { render json: @line_item.errors,
-          status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # PATCH/PUT /line_items/1
-  # PATCH/PUT /line_items/1.json
-  def update
-    respond_to do |format|
-      if @line_item.update(line_item_params)
-        format.html { redirect_to @line_item, notice: 'Line item was successfully updated.' }
-        format.json { render :show, status: :ok, location: @line_item }
-      else
-        format.html { render :edit }
-        format.json { render json: @line_item.errors, status: :unprocessable_entity }
-      end
-    end
-  end
-
-  # DELETE /line_items/1
-  # DELETE /line_items/1.json
-  def destroy
-    @line_item.destroy
-    respond_to do |format|
-      format.html { redirect_to line_items_url, notice: 'Line item was successfully destroyed.' }
-      format.json { head :no_content }
-    end
-  end
-
-  private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_line_item
-      @line_item = LineItem.find(params[:id])
+  test "should create line_item" do
+    assert_difference('LineItem.count') do
+      post line_items_url, params: { product_id: products(:ruby).id }
     end
 
-    # Only allow a list of trusted parameters through.
-    def line_item_params
-      params.require(:line_item).permit(:product_id, :cart_id)
+    follow_redirect!
+
+    assert_select 'h2', 'Your Pragmatic Cart'
+    assert_select 'li', 'Programming Ruby 1.9'
+  end
+
+  test "should show line_item" do
+    get line_item_url(@line_item)
+    assert_response :success
+  end
+
+  test "should get edit" do
+    get edit_line_item_url(@line_item)
+    assert_response :success
+  end
+
+  test "should update line_item" do
+    patch line_item_url(@line_item), params: { line_item: { cart_id: @line_item.cart_id, product_id: @line_item.product_id } }
+    assert_redirected_to line_item_url(@line_item)
+  end
+
+  test "should destroy line_item" do
+    assert_difference('LineItem.count', -1) do
+      delete line_item_url(@line_item)
     end
-  #...
+
+    assert_redirected_to line_items_url
+  end
 end
